@@ -20,6 +20,10 @@ abstract class Model{
 
         return $data ? new static($data) : null;
     }
+
+
+
+
     public static function all() {
     $sql = sprintf("SELECT * FROM %s", static::$table);
 
@@ -35,6 +39,20 @@ abstract class Model{
 
     return $objects;
 }
+
+    public static function CheckEmail(String $email): bool{
+        
+        $checkEmail=sprintf("SELECT email FROM users WHERE email= '$email'");
+        $query = static::$db->prepare($checkEmail);
+        $query->execute();
+        $data = $query->get_result();
+        if($data->num_rows>0){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
 
     public function update(): bool {
         // Get all object properties as an associative array
@@ -106,24 +124,21 @@ abstract class Model{
     }
 }
 
-public function delete(): bool {
-    $sql = "DELETE FROM " . static::$table . " WHERE " . static::$primary_key . " = ?";
+    public function delete(): bool {
+        $sql = "DELETE FROM " . static::$table . " WHERE " . static::$primary_key . " = ?";
 
-    $stmt = static::$db->prepare($sql);
-    if (!$stmt) {
-        return false; // Prepare failed
+        $stmt = static::$db->prepare($sql);
+        if (!$stmt) {
+            return false; // Prepare failed
+        }
+
+        // Bind the primary key value (assumed integer)
+        $primaryKeyValue = $this->{static::$primary_key};
+        $stmt->bind_param("i", $primaryKeyValue);
+
+        return $stmt->execute();
     }
-
-    // Bind the primary key value (assumed integer)
-    $primaryKeyValue = $this->{static::$primary_key};
-    $stmt->bind_param("i", $primaryKeyValue);
-
-    return $stmt->execute();
-}
-
     
-    //Implement the following: 
-    //1- update() -> non-static function 
-    //2- create() -> static function
-    //3- delete() -> non-static function 
+
+
 }

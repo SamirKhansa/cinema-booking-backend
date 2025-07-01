@@ -1,26 +1,32 @@
 <?php
-// Include your DB connection and models
+
 include "../Connections/connection.php";
 require_once __DIR__ . '/../Models/Model.php';
 require_once __DIR__ . '/../Models/Users.php';
 
-// Set DB connection once
-Model::setDB($mysqli);
-
-// Set header to accept JSON
+header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
-// Get raw POST data
-$json = file_get_contents('php://input');
-$data = json_decode($json, true);
+// Read raw POST data once
+$rawInput = file_get_contents('php://input');
 
-if (!$data) {
+
+
+$data = json_decode($rawInput, true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
     http_response_code(400);
-    echo json_encode(["error" => "Invalid JSON"]);
+    echo json_encode(['error' => 'Invalid JSON']);
     exit;
 }
 
-// Basic validation example
+if (!$data || !isset($data['email']) || !isset($data['password'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing email or password']);
+    exit;
+}
+
+
 $required = ["name", "email", "password", "phone_number", "favorite_genres", "date_of_birth"];
 foreach ($required as $field) {
     if (empty($data[$field])) {
@@ -30,20 +36,22 @@ foreach ($required as $field) {
     }
 }
 
-// Prepare data for create()
-// Hash the password
+// Setup DB connection once
+Model::setDB($mysqli);
+
+// Prepare data for creation
 $dataForCreate = [
     "name" => $data["name"],
     "email" => $data["email"],
     "password_hash" => password_hash($data["password"], PASSWORD_DEFAULT),
     "phone_number" => $data["phone_number"],
-    "is_admin" => 0, // default for new users
+    "is_admin" => 0,
     "favorite_genres" => $data["favorite_genres"],
     "date_of_birth" => $data["date_of_birth"],
     "created_at" => date("Y-m-d H:i:s")
 ];
 
-// Create the user
+// Create user
 $user = Users::create($dataForCreate);
 
 if ($user) {
