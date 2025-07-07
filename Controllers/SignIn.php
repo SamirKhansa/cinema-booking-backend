@@ -7,7 +7,7 @@ require_once __DIR__ . '/../Models/Users.php';
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
-// Read raw POST data once
+
 $rawInput = file_get_contents('php://input');
 
 
@@ -36,10 +36,10 @@ foreach ($required as $field) {
     }
 }
 
-// Setup DB connection once
+
 Model::setDB($mysqli);
 
-// Prepare data for creation
+
 $dataForCreate = [
     "name" => $data["name"],
     "email" => $data["email"],
@@ -51,7 +51,7 @@ $dataForCreate = [
     "created_at" => date("Y-m-d H:i:s")
 ];
 
-// Create user
+
 $user = Users::create($dataForCreate);
 
 if ($user) {
